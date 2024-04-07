@@ -10,13 +10,13 @@ import { navLinks } from "@/constants";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-const Header = () => {
+export const Header = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isSignedIn } = useUser();
+  const { isSignedIn } = useUser();
 
   return (
-    <header className="fixed top-0 flex items-center justify-between w-full z-10 bg-gray-50 p-6 px-10 shadow-sm">
+    <header className="sticky top-0 flex items-center justify-between w-full z-10 bg-gray-50 p-6 px-10 shadow-sm">
       <Link href="/" className="flex items-center gap-3">
         <Image
           src="/images/logo.png"
@@ -46,7 +46,11 @@ const Header = () => {
       </nav>
 
       <div className="flex items-center gap-3">
-        <Button size="sm" className="flex gap-2">
+        <Button
+          onClick={() => router.push("/add-new-listing")}
+          size="sm"
+          className="flex gap-2"
+        >
           <span>Post Your Ad</span>
           <PlusCircle className="h-5 w-5" />
         </Button>
