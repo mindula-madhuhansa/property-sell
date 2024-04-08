@@ -42,4 +42,12 @@ interface ListingFormValues {
   floorArea: number;
   sellingPrice: number;
   description: string;
+  profileImgUrl: string;
+  username: string | null;
+  listing_images: ListingImage[];
+}
+
+interface ListingImage {
+  listing_id: number;
+  url: string;
 }

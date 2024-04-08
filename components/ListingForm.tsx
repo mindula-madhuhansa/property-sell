@@ -21,37 +21,30 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import ImageUploader from "@/components/ImageUploader";
 import { useListingStore } from "@/store";
 
 type ListingFormProps = {
   id: string;
   user: User;
 };
-
-const initialValues: ListingFormValues = {
-  type: "sell",
-  propertyType: "house",
-  bedroom: 3,
-  bathroom: 2,
-  floorArea: 2000,
-  sellingPrice: 1000000,
-  description: "",
-};
-
 export const ListingForm = ({ id, user }: ListingFormProps) => {
   const router = useRouter();
   const { isLoading, setIsLoading } = useListingStore();
   const [listing, setListing] = useState<ListingFormValues>();
+  const [images, setImages] = useState<File[] | null>(null);
 
   useEffect(() => {
     const verifyUserRecord = async () => {
       const { data, error } = await supabase
         .from("listings")
-        .select("*")
+        .select("*,listing_images(listing_id,url)")
         .eq("createdBy", user.emailAddresses[0].emailAddress)
         .eq("id", id);
 
       if (data) {
+        console.log(data);
+
         setListing(data[0]);
       }
 
@@ -80,6 +73,51 @@ export const ListingForm = ({ id, user }: ListingFormProps) => {
       setIsLoading(false);
       toast.error("Something went wrong");
     }
+
+    if (images) {
+      for (const image of images) {
+        const file = image;
+        const fileName = Date.now().toString();
+        const fileExt = fileName.split(".").pop();
+
+        const { data, error } = await supabase.storage
+          .from("images")
+          .upload(`${fileName}`, file, {
+            contentType: `image/${fileExt}`,
+            upsert: false,
+          });
+
+        if (error) {
+          toast.error("Image uploading failed!");
+        }
+
+        if (data) {
+          const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_IMAGE_URL}/${fileName}`;
+          const { data, error } = await supabase
+            .from("listing_images")
+            .insert({ url: imageUrl, listing_id: id })
+            .select();
+
+          if (error) {
+            setIsLoading(false);
+          }
+        }
+      }
+    }
+    setIsLoading(false);
+  };
+
+  const initialValues: ListingFormValues = {
+    type: "sell",
+    propertyType: "house",
+    bedroom: 3,
+    bathroom: 2,
+    floorArea: 2000,
+    sellingPrice: 1000000,
+    description: "",
+    username: user.firstName,
+    profileImgUrl: user.imageUrl,
+    listing_images: [],
   };
 
   return (
@@ -87,7 +125,6 @@ export const ListingForm = ({ id, user }: ListingFormProps) => {
       initialValues={initialValues}
       onSubmit={(values) => {
         onSubmitHandler(values);
-        console.log(values);
       }}
     >
       {({ values, handleChange, handleSubmit }) => (
@@ -232,6 +269,12 @@ export const ListingForm = ({ id, user }: ListingFormProps) => {
               />
             </div>
           </div>
+
+          <ImageUploader
+            setImages={(value: File[] | null) => setImages(value)}
+            imageList={listing?.listing_images}
+          />
+
           <div className="mt-4 border border-gray-200 rounded-full" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <Button
