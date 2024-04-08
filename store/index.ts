@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 interface ListingStoreState {
   isLoading: boolean;
-  setisLoading: (isLoading: boolean) => void;
+  setIsLoading: (isLoading: boolean) => void;
 
   address: GoogleAutocompleteAddress | null;
   setAddress: (address: GoogleAutocompleteAddress) => void;
@@ -13,7 +13,7 @@ interface ListingStoreState {
 
 export const useListingStore = create<ListingStoreState>()((set) => ({
   isLoading: false,
-  setisLoading: (isLoading: boolean) => set({ isLoading }),
+  setIsLoading: (isLoading: boolean) => set({ isLoading }),
 
   address: null,
   setAddress: (address: GoogleAutocompleteAddress) => set({ address }),

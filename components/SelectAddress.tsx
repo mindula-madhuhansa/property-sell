@@ -2,19 +2,21 @@
 
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
+import { LoaderIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { supabase } from "@/lib/supabase";
 import { useListingStore } from "@/store";
 import { Button } from "@/components/ui/button";
 import { AddressSearchInput } from "@/components/AddressSearchInput";
-import { LoaderIcon } from "lucide-react";
 
 export const SelectAddress = () => {
+  const router = useRouter();
   const { user } = useUser();
-  const { address, coordinates, isLoading, setisLoading } = useListingStore();
+  const { address, coordinates, isLoading, setIsLoading } = useListingStore();
 
   const handleSaveAddress = async () => {
-    setisLoading(true);
+    setIsLoading(true);
     const { data, error } = await supabase
       .from("listings")
       .insert([
@@ -27,12 +29,13 @@ export const SelectAddress = () => {
       .select();
 
     if (data) {
-      setisLoading(false);
+      setIsLoading(false);
       toast.success("New address added");
+      router.replace(`/edit-listing/${data[0].id}`);
     }
 
     if (error) {
-      setisLoading(false);
+      setIsLoading(false);
       toast.error("Something went wrong!");
     }
   };

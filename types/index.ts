@@ -33,3 +33,13 @@ interface Coordinates {
   lat: number;
   lng: number;
 }
+
+interface ListingFormValues {
+  type: string;
+  propertyType: string;
+  bedroom: number;
+  bathroom: number;
+  floorArea: number;
+  sellingPrice: number;
+  description: string;
+}
