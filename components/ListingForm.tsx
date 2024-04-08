@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { User } from "@clerk/nextjs/server";
 
+import { useListingStore } from "@/store";
 import { supabase } from "@/lib/supabase";
 import { propertyTypes } from "@/constants";
 import { Label } from "@/components/ui/label";
@@ -18,11 +19,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import ImageUploader from "@/components/ImageUploader";
-import { useListingStore } from "@/store";
 
 type ListingFormProps = {
   id: string;
@@ -105,6 +116,25 @@ export const ListingForm = ({ id, user }: ListingFormProps) => {
       }
     }
     setIsLoading(false);
+  };
+
+  const publishBtnHandler = async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from("listings")
+      .update({ active: true })
+      .eq("id", id)
+      .select();
+
+    if (data) {
+      toast.success("Listing published successfully");
+      setIsLoading(false);
+    }
+
+    if (error) {
+      toast.success("Listing publish failed!");
+      setIsLoading(false);
+    }
   };
 
   const initialValues: ListingFormValues = {
@@ -292,16 +322,44 @@ export const ListingForm = ({ id, user }: ListingFormProps) => {
               )}
             </Button>
 
-            <Button type="submit" className="w-full">
-              {isLoading ? (
-                <>
-                  <span>Saving</span>
-                  <LoaderIcon className="ml-2 animate-spin" />
-                </>
-              ) : (
-                <span>Save & Publish</span>
-              )}
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger>
+                <Button type="button" className="w-full">
+                  {isLoading ? (
+                    <>
+                      <span>Saving</span>
+                      <LoaderIcon className="ml-2 animate-spin" />
+                    </>
+                  ) : (
+                    <span>Save & Publish</span>
+                  )}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Ready to Publish?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure? This will publish your listing.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    disabled={isLoading}
+                    onClick={() => publishBtnHandler()}
+                  >
+                    {isLoading ? (
+                      <>
+                        <span>Publishing</span>
+                        <LoaderIcon className="ml-2 animate-spin" />
+                      </>
+                    ) : (
+                      <span>Publish</span>
+                    )}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </form>
       )}
