@@ -4,7 +4,7 @@ import { Formik } from "formik";
 import { LoaderIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { User } from "@clerk/nextjs/server";
 
 import { supabase } from "@/lib/supabase";
@@ -41,6 +41,7 @@ const initialValues: ListingFormValues = {
 export const ListingForm = ({ id, user }: ListingFormProps) => {
   const router = useRouter();
   const { isLoading, setIsLoading } = useListingStore();
+  const [listing, setListing] = useState<ListingFormValues>();
 
   useEffect(() => {
     const verifyUserRecord = async () => {
@@ -50,13 +51,17 @@ export const ListingForm = ({ id, user }: ListingFormProps) => {
         .eq("createdBy", user.emailAddresses[0].emailAddress)
         .eq("id", id);
 
+      if (data) {
+        setListing(data[0]);
+      }
+
       if (data && data?.length <= 0) {
         router.push("/");
       }
     };
 
     verifyUserRecord();
-  }, [id, user, router]);
+  }, [user, router, id]);
 
   const onSubmitHandler = async (formValue: ListingFormValues) => {
     setIsLoading(true);
@@ -85,7 +90,7 @@ export const ListingForm = ({ id, user }: ListingFormProps) => {
         console.log(values);
       }}
     >
-      {({ values, handleChange, handleSubmit, isSubmitting }) => (
+      {({ values, handleChange, handleSubmit }) => (
         <form
           onSubmit={handleSubmit}
           className="mt-4 p-8 border rounded-md shadow-md space-y-5 min-w-96 md:w-7xl"
@@ -97,7 +102,7 @@ export const ListingForm = ({ id, user }: ListingFormProps) => {
               </Label>
               <RadioGroup
                 onValueChange={(e) => (values.type = e)}
-                defaultValue="sell"
+                defaultValue={listing?.type}
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="rent" id="rent" />
@@ -120,9 +125,16 @@ export const ListingForm = ({ id, user }: ListingFormProps) => {
               <Select
                 onValueChange={(e) => (values.propertyType = e)}
                 name="propertyType"
+                defaultValue={listing?.propertyType}
               >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Property Type" />
+                <SelectTrigger className="w-full capitalize">
+                  <SelectValue
+                    placeholder={
+                      listing?.propertyType
+                        ? listing?.propertyType
+                        : "Select Property Type"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {propertyTypes.map((type) => (
@@ -147,6 +159,7 @@ export const ListingForm = ({ id, user }: ListingFormProps) => {
                 type="number"
                 placeholder="Ex. 3"
                 name="bedroom"
+                defaultValue={listing?.bedroom}
                 onChange={handleChange}
                 className="w-full"
               />
@@ -163,6 +176,7 @@ export const ListingForm = ({ id, user }: ListingFormProps) => {
                 type="number"
                 placeholder="Ex. 2"
                 name="bathroom"
+                defaultValue={listing?.bathroom}
                 onChange={handleChange}
                 className="w-full"
               />
@@ -179,6 +193,7 @@ export const ListingForm = ({ id, user }: ListingFormProps) => {
                 type="number"
                 placeholder="Ex. 1600"
                 name="floorArea"
+                defaultValue={listing?.floorArea}
                 onChange={handleChange}
                 className="w-full"
               />
@@ -195,6 +210,7 @@ export const ListingForm = ({ id, user }: ListingFormProps) => {
                 type="number"
                 placeholder="Ex. 100,000.00"
                 name="sellingPrice"
+                defaultValue={listing?.sellingPrice}
                 onChange={handleChange}
                 className="w-full"
               />
@@ -210,6 +226,7 @@ export const ListingForm = ({ id, user }: ListingFormProps) => {
               <Textarea
                 placeholder=""
                 name="description"
+                defaultValue={listing?.description}
                 onChange={handleChange}
                 className="w-full"
               />
